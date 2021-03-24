@@ -1,0 +1,351 @@
+RArmShoulderPitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RArmShoulderPitch_joint
+    joint_speed: 1
+    motor:
+        id: 1
+        init: 512
+        min: 512
+        max: 1023
+
+
+RArmShoulderRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RArmShoulderRoll_joint
+    joint_speed: 0.7
+    motor:
+        id: 3
+        init: 512
+        min: 512
+        max: 1023
+
+RArmElbowYaw_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RArmElbowYaw_joint
+    joint_speed: 1
+    motor:
+        id: 5
+        init: 498
+        min: 200
+        max: 800
+
+RArmElbowRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RArmElbowRoll_joint
+    joint_speed: 1
+    motor:
+        id: 21
+        init: 436
+        min: 436
+        max: 489
+
+RArmWristYaw_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RArmWristYaw_joint
+    joint_speed: 1.5
+    motor:
+        id: 23
+        init: 517
+        min: 79
+        max: 618
+
+RArmWristRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RArmWristRoll_joint
+    joint_speed: 1
+    motor:
+        id: 25
+        init: 572
+        min: 229
+        max: 707
+
+LArmShoulderPitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LArmShoulderPitch_joint
+    joint_speed: 0.7
+    motor:
+        id: 2
+        init: 512
+        min: 0
+        max: 1023
+
+LArmShoulderRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LArmShoulderRoll_joint
+    joint_speed: 0.7
+    motor:
+        id: 4         
+        init: 512
+        min: 0
+        max: 1023
+
+LArmElbowYaw_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LArmElbowYaw_joint
+    joint_speed: 1.5
+    motor:
+        id: 6
+        init: 526
+        min: 0
+        max: 1023
+
+LArmElbowRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LArmElbowRoll_joint
+    joint_speed: 0.7
+    motor:
+        id: 24
+        init: 530
+        min: 0
+        max: 1023
+
+LArmWristYaw_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LArmWristYaw_joint
+    joint_speed: 1.5
+    motor:
+        id: 22
+        init: 589
+        min: 0
+        max: 1023
+
+LArmWristRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LArmWristRoll_joint
+    joint_speed: 1
+    motor:
+        id: 26
+        init: 424
+        min: 0
+        max: 1023
+
+LArmHand_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LArmHand_joint
+    joint_speed: 1.5
+    motor:
+        id: 28
+        init: 454
+        min: 0
+        max: 1023
+
+RHipYaw_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RHipYaw_joint
+    joint_speed: 1.5
+    motor:
+        id: 7
+        init: 512
+        min: 0
+        max: 1023
+
+RHipRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RHipRoll_joint
+    joint_speed: 1.5
+    motor:
+        id: 9
+        init: 512
+        min: 0
+        max: 1023
+
+RHipPitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RHipPitch_joint
+    joint_speed: 0.5
+    motor:
+        id: 11
+        init: 512
+        min: 0
+        max: 1023
+
+RKneePitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RKneePitch_joint
+    joint_speed: 1
+    motor:
+        id: 13
+        init: 512
+        min: 0
+        max: 1023
+
+RAnklePitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RAnklePitch_joint
+    joint_speed: 0.5
+    motor:
+        id: 15
+        init: 512
+        min: 0
+        max: 1023
+
+RFootRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: RFootRoll_joint
+    joint_speed: 1.5
+    motor:
+        id: 17
+        init: 512
+        min: 0
+        max: 1023
+
+LHipYaw_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LHipYaw_joint
+    joint_speed: 1.5
+    motor:
+        id: 8
+        init: 512
+        min: 0
+        max: 1023
+
+LHipRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LHipRoll_joint
+    joint_speed: 1.5
+    motor:
+        id: 10
+        init: 512
+        min: 0
+        max: 1023
+
+LHipPitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LHipPitch_joint
+    joint_speed: 0.5
+    motor:
+        id: 12
+        init: 512
+        min: 0
+        max: 1023
+
+LKneePitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LKneePitch_joint
+    joint_speed: 1
+    motor:
+        id: 14
+        init: 512
+        min: 0
+        max: 1023
+
+LAnklePitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LAnklePitch_joint
+    joint_speed: 0.5
+    motor:
+        id: 16
+        init: 512
+        min: 0
+        max: 1023
+
+LFootRoll_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: LFootRoll_joint
+    joint_speed: 1.5
+    motor:
+        id: 18
+        init: 512
+        min: 0
+        max: 1023
+
+NeckYaw_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: NeckYaw_joint
+    joint_speed: 1.5
+    motor:
+        id: 19
+        init: 512
+        min: 0
+        max: 1023
+
+HeadPitch_controller:
+    controller:
+        package: dynamixel_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: HeadPitch_joint
+    joint_speed: 1.5
+    motor:
+        id: 20
+        init: 636
+        min: 0
+        max: 1023

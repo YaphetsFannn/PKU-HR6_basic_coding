@@ -1,0 +1,14 @@
+RArmShoulderPitch_controller
+		RArmShoulderRoll_controller
+		RArmElbowRoll_controller
+		RArmElbowYaw_controller
+                RArmHand_controller
+		LArmShoulderPitch_controller
+		LArmShoulderRoll_controller
+		LArmElbowRoll_controller
+		LArmElbowYaw_controller
+                LArmHand_controller
+
+
+NeckYaw_controller
+		HeadPitch_controller

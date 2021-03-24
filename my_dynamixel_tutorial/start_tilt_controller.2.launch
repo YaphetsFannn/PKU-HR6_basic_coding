@@ -1,0 +1,37 @@
+<launch>
+    <!-- Start tilt joint controller -->
+    <rosparam file="$(find my_dynamixel_tutorial)/tilt.yaml" command="load"/>
+    <node name="tilt_controller_spawner" pkg="dynamixel_controllers" type="controller_spawner.py"
+          args="--manager=dxl_manager
+                --port pan_tilt_port
+                RArmShoulderPitch_controller
+		RArmShoulderRoll_controller
+		RArmElbowYaw_controller
+		RArmElbowRoll_controller
+		RArmWristYaw_controller
+		RArmWristRoll_controller
+                RArmHand_controller
+                LArmShoulderPitch_controller
+		LArmShoulderRoll_controller
+		LArmElbowYaw_controller
+		LArmElbowRoll_controller
+		LArmWristYaw_controller
+		LArmWristRoll_controller
+                LArmHand_controller
+		RHipYaw_controller
+		RHipRoll_controller
+		RHipPitch_controller
+		RKneePitch_controller
+		RAnklePitch_controller
+		RFootRoll_controller
+		LHipYaw_controller
+		LHipRoll_controller
+		LHipPitch_controller
+		LKneePitch_controller
+		LAnklePitch_controller
+		LFootRoll_controller
+		NeckYaw_controller
+		HeadPitch_controller
+		"
+          output="screen"/>
+</launch>

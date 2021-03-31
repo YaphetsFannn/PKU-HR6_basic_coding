@@ -20,6 +20,7 @@
 #include <memory>
 #include "dynamixel_msgs/MotorStateList.h"
 #include "dynamixel_msgs/MotorState.h"
+#include "realsense_camera/position.h"
 #include <map>
 //sudo modprobe uvcvideo
 using namespace std;
@@ -198,25 +199,7 @@ vector<float> Detect(const float& depth_scale,
         cout<<endl;
     }
     cout<<"***********************************************************************"<<endl;
-    // if(obj_cnt>40){
-    //     mind_obj_depth = obj_depth[obj_cnt/2];
-    //     // printf("mind_obj_depth is %.6f, count is %d \n",mind_obj_depth, obj_cnt);
-    //     for(int i=hb;i<he;i++){
-    //         for(int j=wb;j<we;j++){
-    //             if(isObj[i][j]){
-    //                 if(fabs(Z[i][j] - mind_obj_depth)>0.1) continue;
-    //                 else{
-    //                     if(Z[i][j] > obj_position[2]){
-    //                         obj_position[0] = Z[i][j];
-    //                         obj_position[1] = -Y[i][j];
-    //                         obj_position[2] = -X[i][j];
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //         dep_row += 640;       
-    //     }
-    // }
+
     return obj_position;
 }
 
@@ -238,36 +221,32 @@ void Mul(float (*m1)[4], float (*m2)[4]) {
 ros::Publisher pub;
 ros::Publisher pub_hn[8];
 
-bool isEnd = false;
 // int count_ = 1;
 
 /// \brief poseMessageReceived
 /// \param msg
 ///
 map<int,int> motorId_states;
-void poseMessageReceived(const dynamixel_msgs::MotorStateList& msg){
-    // printf("get msg from neck %d \n", msg.motor_ids[0]);
+
+int FLAG = 0;
+int video_switch = 1;
+
+class SubscribeAndPublish
+{
+public:
+  SubscribeAndPublish()
+  {
+    //Topic you want to publish
+    pub_ = n_.advertise<realsense_camera::position>("/hand_position", 1);
+    //Topic you want to subscribe
+    sub_ = n_.subscribe("/motor_states/pan_tilt_port", 1, &SubscribeAndPublish::callback, this);
+  }
+
+  void callback(const dynamixel_msgs::MotorStateList& msg)
+  {
     auto motor_positions = msg.motor_states;
     // printf("motor positions size is:%d\n",motor_positions.size());
-    // if(motor_positions.size()!=25) { 
-    //     printf("motor_positions.size is %ld\n",motor_positions.size());
-    //     vector<int> motor_ids;
-    //     for(auto motor_state : motor_positions){
-    //         motor_ids.push_back(motor_state.id);
-    //     }
-    //     // vector<int> lack_motor_ids;        
-    //     for(int i=0;i<28;i++){
-    //         if(!count(motor_ids.begin(),motor_ids.end(),i)){
-    //             // lack_motor_ids.push_back(i);
-    //             printf(" %d ",i);
-    //         }
-    //     }
-    //     printf("not found!\n");
-        
-    //     return;
-    // }
-
-
+    
     for(auto motor_state : motor_positions){
         motorId_states[motor_state.id] = motor_state.position;
     }
@@ -275,9 +254,9 @@ void poseMessageReceived(const dynamixel_msgs::MotorStateList& msg){
     vector<float> obj_position_cmr = Detect(scale, intrin, 3);
     obj_position_cmr.push_back(1);  //{x,y,z,1}
 
-    printf("position is %d\n",motorId_states[20]);
-    printf("zeroposition is %d\n",zero_position[20]);
-    bool need_debug = true;
+    // printf("position is %d\n",motorId_states[20]);
+    // printf("zeroposition is %d\n",zero_position[20]);
+    bool need_debug = false;
     if(need_debug){
         for(auto index:arm_joint_index){
             float angle = (motorId_states[index] - zero_position[index]) * step_angle;
@@ -310,69 +289,29 @@ void poseMessageReceived(const dynamixel_msgs::MotorStateList& msg){
                 obj_position_cmr[0]*100, obj_position_cmr[1]*100, obj_position_cmr[2]*100);
         printf("position_base(cm): (x,y,z)| (%.4f , %.4f, %.4f)\n",
                 obj_position_base[0]*100, obj_position_base[1]*100, obj_position_base[2]*100);
-        if(!frame)
-        {
-            puts("wtf error\n");
-            exit(-1);
-        }
-        // if(!count_++%5==0){
-        //     return;
-        // // }
-        fprintf(frame,"%.4f %.4f %.4f ",
-                obj_position_base[0]*100, obj_position_base[1]*100, obj_position_base[2]*100);
-        for(auto index:arm_joint_index){
-            float angle = (motorId_states[index] - zero_position[index]) * step_angle;
-            fprintf(frame,"%.2f ",angle);
-        }
-        fprintf(frame, "\n");
+        realsense_camera::position output;        
+        output.A=obj_position_base[0]*100;
+        output.B=obj_position_base[1]*100;
+        output.C=obj_position_base[2]*100;
+        pub_.publish(output);
     }else{
         cout<<"Object not found!\n";
     }
-    
-    // if(cnt_of_instrct>=read_joint.size() - 1||cnt_of_instrct>300){
-    //     isEnd = true;
-    //     return;
-    // } 
-    // std_msgs::Float64 aux;
-    // for (int i = 2; i <= 7; ++i) {
-    //     aux.data = read_joint[cnt_of_instrct][i-2] * D2R;
-    //     pub_hn[i].publish(aux);
-    // }
-    // cnt_of_instrct++;
-    cout<<"cnt of instrct:"<<cnt_of_instrct<<endl;
     ros::Duration(0.3).sleep();
-}
+  }
 
-int FLAG = 0;
-int video_switch = 1;
+private:
+  ros::NodeHandle n_; 
+  ros::Publisher pub_;
+  ros::Subscriber sub_;
+
+};
 
 int main(int argc, char * argv[]) try
 {
-    ifstream infile("/home/pku-hr6/yyf_ws/data/arm_running.txt");
-    if(!infile.is_open()){
-        cout<<"Open file error!\n"<<endl;
-        return 0;
-    }
-    char line[256] = {0};
-    while(infile.getline(line,sizeof(line))){
-        stringstream word(line);
-        vector<float> tmp_joint(6,0);
-        for(int i =0;i<6;i++){
-            word>>tmp_joint[i];
-            cout<<tmp_joint[i]<<" ";
-        }
-        cout<<endl;
-        read_joint.push_back(tmp_joint);
-    }
-    infile.clear();
-    infile.close();
-
-    frame = fopen("/home/pku-hr6/yyf_ws/src/meta_control_model/data/real_data.txt","w");
     //cin >> kind;
-    ros::init(argc, argv, "realsense_capture");
-    ros::NodeHandle nh;
-    ros::Rate r(10); // 10 hz 
-    rs::log_to_console(rs::log_severity::warn);
+    ros::init(argc, argv, "get_hand_position");
+
     //rs::log_to_file(rs::log_severity::debug, "librealsense.log");
     srand((unsigned int)(time(NULL))); /// use for object detection
 
@@ -403,10 +342,10 @@ int main(int argc, char * argv[]) try
     dev.start();
 
     // Open a GLFW window
-    glfwInit();
+    // glfwInit();
     std::ostringstream ss; ss << "CPP Capture Example (" << dev.get_name() << ")";
-    GLFWwindow * win = glfwCreateWindow(1280, 960, ss.str().c_str(), 0, 0);
-    glfwSetWindowUserPointer(win, &dev);
+    GLFWwindow * win = glfwCreateWindow(1280, 480, ss.str().c_str(), 0, 0);
+    // glfwSetWindowUserPointer(win, &dev);
     glfwSetKeyCallback(win, [](GLFWwindow * win, int key, int scancode, int action, int mods)
     {
         auto dev = reinterpret_cast<rs::device *>(glfwGetWindowUserPointer(win));
@@ -452,19 +391,10 @@ int main(int argc, char * argv[]) try
     intrin = depth_intrin;
 
     // ros::Subscriber sub_head_pitch = nh.subscribe("/HeadPitch_controller/state", 1000, poseMessageReceived);
-    ros::Subscriber sub_head_pitch = nh.subscribe("/motor_states/pan_tilt_port", 1, poseMessageReceived);
-
-    pub_hn[0] = nh.advertise<std_msgs::Float64>("/NeckYaw_controller/command",1);
-    pub_hn[1] = nh.advertise<std_msgs::Float64>("/HeadPitch_controller/command",1);
-    pub_hn[2] = nh.advertise<std_msgs::Float64>("/RArmShoulderPitch_controller/command",1);
-    pub_hn[3] = nh.advertise<std_msgs::Float64>("/RArmShoulderRoll_controller/command",1);
-    pub_hn[4] = nh.advertise<std_msgs::Float64>("/RArmElbowYaw_controller/command",1);
-    pub_hn[5] = nh.advertise<std_msgs::Float64>("/RArmElbowRoll_controller/command",1);
-    pub_hn[6] = nh.advertise<std_msgs::Float64>("/RArmWristYaw_controller/command",1);
-    pub_hn[7] = nh.advertise<std_msgs::Float64>("/RArmWristRoll_controller/command",1);
-    pub = nh.advertise<naoqi_msgs::JointAnglesWithSpeed>("/target_position", 1);
-
-    while (!glfwWindowShouldClose(win) && ros::ok() && !isEnd)
+    SubscribeAndPublish SAPObject;
+    ros::Rate r(10); // 10 hz 
+    rs::log_to_console(rs::log_severity::warn);
+    while (!glfwWindowShouldClose(win) && ros::ok())
     {
         // Wait for new images
         glfwPollEvents();
@@ -473,13 +403,13 @@ int main(int argc, char * argv[]) try
         // Clear the framebuffer
         int w,h;
         glfwGetFramebufferSize(win, &w, &h);
-        glViewport(0, 0, w, h);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // glViewport(0, 0, w, h);
+        // glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw the images
-        glPushMatrix();
-        glfwGetWindowSize(win, &w, &h);
-        glOrtho(0, w, h, 0, -1, +1);
+        // glPushMatrix();
+        // glfwGetWindowSize(win, &w, &h);
+        // glOrtho(0, w, h, 0, -1, +1);
         data = (const uint8_t*)buffers[0].show(\
             dev, align_color_to_depth ? rs::stream::color_aligned_to_depth : \
             (color_rectification_enabled ? rs::stream::rectified_color : \
@@ -488,27 +418,10 @@ int main(int argc, char * argv[]) try
         dev, align_depth_to_color ? (color_rectification_enabled ? \
         rs::stream::depth_aligned_to_rectified_color : rs::stream::depth_aligned_to_color) : \
         rs::stream::depth, w/2, 0, w-w/2, h/2);
-        // auto points = reinterpret_cast<const rs::float3 *>(dev.get_frame_data(rs::stream::points));
-        // if (cnt == 100) {
-        //     if (points->z) {
-        //         FILE *fp = fopen("RGB.txt", "w");
-        //         int tol = 480 * 640;
-        //         for (int i = 0; i < tol; ++i) {
-        //             fprintf(fp, "%f %f %f\n", points->x, points->y, points->z);
-        //             points++;
-        //         }
-        //         fclose(fp);
-        //     }
-        //     // break;
-        // }
-        // if (cnt >= 10 && data != NULL && depth != NULL) {
-        //     Detect(depth_scale, depth_intrin, 3);
-        // }
-
         ++cnt;
         r.sleep();
         ros::spinOnce();
-        glPopMatrix();
+        // glPopMatrix();
         glfwSwapBuffers(win);
     }
 

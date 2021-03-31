@@ -89,11 +89,10 @@ add_definitions(-D${BACKEND} -DUNICODE)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+ add_message_files(
+   FILES
+   position.msg
+ )
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -126,10 +125,10 @@ add_definitions(-D${BACKEND} -DUNICODE)
 #  get_rgb_uv.srv
 #)
 
-#generate_messages(
-#  DEPENDENCIES
-#  std_msgs
-#)
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 
 ###################################
@@ -224,6 +223,31 @@ add_executable(realsense-capture
   src/ObjectPoseEstimation-master/TableObjectDetector.hpp
 )
 
+add_executable(get_hand_position
+  src/get_hand_position.cpp
+  src/uvc-v4l2.cpp
+  src/context.cpp
+  src/device.cpp
+  src/rs.cpp
+  src/stream.cpp
+  src/uvc.cpp
+  src/types.cpp
+  src/sync.cpp
+  src/image.cpp
+  src/r200.cpp
+  src/f200.cpp
+  src/f200-private.cpp
+  src/r200-private.cpp
+  src/log.cpp
+  src/ObjectPoseEstimation-master/Minimization.cpp
+  src/ObjectPoseEstimation-master/ObjectPoseEstimator.cpp
+  src/ObjectPoseEstimation-master/OPESettings.cpp
+  src/ObjectPoseEstimation-master/OPEUtils.cpp
+  src/ObjectPoseEstimation-master/Plane.cpp
+  src/ObjectPoseEstimation-master/PointCloudCapture.cpp
+  src/ObjectPoseEstimation-master/SQFitting.cpp
+  src/ObjectPoseEstimation-master/TableObjectDetector.hpp
+)
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(realsense_camera_node realsense_camera_generate_messages_cpp)
@@ -261,6 +285,17 @@ target_link_libraries(realsense-capture
   /usr/lib/libvtkFiltering.so
 )
 
+target_link_libraries(get_hand_position
+  ${catkin_LIBRARIES}
+  #${OpenCV_LIBS}
+  ${GL_LIBRARIES}
+  #${PCL_LIBRARIES}
+  ${V4L_LIBRARIES}
+  ${UDEV_LIBRARIES}
+  ${LIBUSB_LIBRARIES}
+  ${GLFW_LIBRARIES}
+  /usr/lib/libvtkFiltering.so
+)
 #target_link_libraries(realsense_camera_config_node
 #  ${catkin_LIBRARIES}
 #)

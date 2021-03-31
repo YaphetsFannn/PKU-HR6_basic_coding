@@ -240,6 +240,8 @@ int main(int argc,char** argv)
             aux.data = angle[i] + del[i];
             // if(i==1||i==3||i==5||i==21||i==23||i==25)
             //     continue;
+            if(i==2||i==4||i==6||i==22||i==24||i==26)
+                continue;
             pub[i].publish(aux);
         }
       ros::spinOnce();
@@ -272,7 +274,7 @@ int main(int argc,char** argv)
         pub[10].publish(aux);
         loop.sleep();
     }*/
-    ros::spin();
+    ros::shutdown();
     return 0;
 }
 

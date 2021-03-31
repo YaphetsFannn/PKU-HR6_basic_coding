@@ -21,8 +21,8 @@ RArmShoulderRoll_controller:
     joint_speed: 0.7
     motor:
         id: 3
-        init: 512
-        min: 512
+        init: 506
+        min: 506
         max: 1023
 
 RArmElbowYaw_controller:
@@ -34,7 +34,7 @@ RArmElbowYaw_controller:
     joint_speed: 1
     motor:
         id: 5
-        init: 498
+        init: 502
         min: 200
         max: 800
 
@@ -47,9 +47,9 @@ RArmElbowRoll_controller:
     joint_speed: 1
     motor:
         id: 21
-        init: 436
-        min: 436
-        max: 489
+        init: 563
+        min: 490
+        max: 860
 
 RArmWristYaw_controller:
     controller:
@@ -60,7 +60,7 @@ RArmWristYaw_controller:
     joint_speed: 1.5
     motor:
         id: 23
-        init: 517
+        init: 536
         min: 79
         max: 618
 
@@ -73,7 +73,7 @@ RArmWristRoll_controller:
     joint_speed: 1
     motor:
         id: 25
-        init: 572
+        init: 578
         min: 229
         max: 707
 
@@ -346,6 +346,6 @@ HeadPitch_controller:
     joint_speed: 1.5
     motor:
         id: 20
-        init: 636
+        init: 660
         min: 0
         max: 1023

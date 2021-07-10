@@ -1,4 +1,7 @@
-float64 A
-float64 B
-float64 C
+float64 hx
+float64 hy
+float64 hz
+float64 ox
+float64 oy
+float64 oz
 

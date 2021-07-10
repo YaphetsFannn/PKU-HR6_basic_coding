@@ -90,7 +90,10 @@ float M2[4][4] = {{cos(0), 0, sin(0), 0},
                     {0, 1, 0, 0},
                   {-sin(0), 0, cos(0), 0},
                    {0, 0, 0, 1}};
-
+float rotY_M[3][3] = {{1,0,0},
+                     {0,1,0},
+                     {0,0,1}
+};
 /// \return val1 == val2
 bool IsEquals(float val1 , float val2)
 {
@@ -103,13 +106,25 @@ bool IsEquals(float val1 , float val2)
 /// \param depth_intrin
 /// \param color
 /// \return objector's position
-
+struct Point{
+    float x;
+    float y;
+    float z;
+    Point(float x_,float y_,float z_){
+        x = x_;
+        y = y_;
+        z = z_;
+    }
+};
+float dis(Point& A,Point& B){
+    return sqrt(pow(A.x-B.x,2)+pow(A.y-B.y,2)+pow(A.z-B.z,2));
+}
 vector<float> Detect(const float& depth_scale,
             const rs::intrinsics& depth_intrin, const int color) {
     // cout <<"start Detect"<<endl;
     //uint8_t *ptr_data = (uint8_t *)data;
     //uint16_t *ptr_depth = (uint16_t *)depth;
-
+    vector<Point> objs;
     int dep_row = hb * 640;
     // transform from rgb to hsv
     for (int i = hb; i < he; ++i) {
@@ -147,9 +162,12 @@ vector<float> Detect(const float& depth_scale,
                 }
             }
 
-            if ((h>340||h<20)&&(s > 0.4)) {
+            if ((h>340||h<10)&&(s > 0.4)) {
                 isObj[i][j] = 1;
-            }else{
+            }else if(h>200&&h<240&&s>0.19){
+                isObj[i][j] = 2;                
+            }else
+            {
                 isObj[i][j] = 0;
             }
             rgb_col += 3;
@@ -160,40 +178,76 @@ vector<float> Detect(const float& depth_scale,
 
 
     // get object's position
-    vector<float> obj_position{0.0,0.0,0.0};
+    vector<float> obj_position{0.0,0.0,0.0,0.0,0.0,0.0};
+    vector<float> hand_cols;
+    vector<float> hand_rows;
     vector<float> obj_cols;
     vector<float> obj_rows;
-    float mind_obj_depth = 0.0;
-    int obj_cnt = 0;
+    int hand_cnt = 0;
+    int obj_cnt = 1;
 
     for(int i=hb;i<he;i++){      
         for(int j=wb;j<we;j++){         
-            if(isObj[i][j]){
+            if(isObj[i][j]==1){
+                hand_cols.push_back(i);
+                hand_rows.push_back(j);
+                hand_cnt++;
+            }else if(isObj[i][j]==2){
                 obj_cols.push_back(i);
                 obj_rows.push_back(j);
                 obj_cnt++;
+                Point tmp = Point(Z[i][j]*100,-Y[i][j]*100,-X[i][j]*100);
+                bool isNewP = true;
+                for(Point op:objs){
+                    if(dis(op,tmp)<1){
+                        isNewP = false;
+                        break;
+                    }
+                }
+                if(isNewP){
+                    objs.push_back(tmp);
+                }
             }
         }
     }
+    printf("\n---------------------------------------\n");
+    for(auto P : objs){
+        printf("|(%.2f,%.2f,%.2f)",P.x,P.y,P.z);
+    }
+    printf("\n---------------------------------------\n");
+    sort(hand_cols.begin(), hand_cols.end());
+    sort(hand_rows.begin(), hand_rows.end());
+    int mid_col_index = hand_cols.size()/2;
+    int mid_row_index = hand_rows.size()/2;
+    // set obj position as median
+    int hand_col = 0;
+    int hand_row = 0;
+    if(hand_cnt>40){
+        hand_col = (hand_cols[mid_col_index - 1] + hand_cols[mid_col_index] + hand_cols[mid_col_index +1])/3;
+        hand_row = (hand_rows[mid_row_index - 1] + hand_rows[mid_row_index] + hand_rows[mid_row_index +1])/3;
+        obj_position[0] = Z[hand_col][hand_row];
+        obj_position[1] = -Y[hand_col][hand_row];
+        obj_position[2] = -X[hand_col][hand_row];
+    }
     sort(obj_cols.begin(), obj_cols.end());
     sort(obj_rows.begin(), obj_rows.end());
-    int mid_col_index = obj_cols.size()/2;
-    int mid_row_index = obj_rows.size()/2;
+    mid_col_index = obj_cols.size()/2;
+    mid_row_index = obj_rows.size()/2;
     // set obj position as median
     int obj_col = 0;
     int obj_row = 0;
-    if(obj_cnt>40){
+    if(obj_cnt>4){
         obj_col = (obj_cols[mid_col_index - 1] + obj_cols[mid_col_index] + obj_cols[mid_col_index +1])/3;
-        obj_row = (obj_rows[mid_col_index - 1] + obj_rows[mid_col_index] + obj_rows[mid_col_index +1])/3;
-        obj_position[0] = Z[obj_col][obj_row];
-        obj_position[1] = -Y[obj_col][obj_row];
-        obj_position[2] = -X[obj_col][obj_row];
+        obj_row = (obj_rows[mid_row_index - 1] + obj_rows[mid_row_index] + obj_rows[mid_row_index +1])/3;
+        obj_position[3] = Z[obj_col][obj_row];
+        obj_position[4] = -Y[obj_col][obj_row];
+        obj_position[5] = -X[obj_col][obj_row];
     }
     cout<<"***********************************************************************"<<endl;
     for(int i=hb; i<he;i+=10){
         for(int j=wb; j<we;j+=10){
-            if(i>obj_col-10&&i<obj_col+10&&j>obj_row-10&&j<obj_row+10) cout<<"#";
-            else if(isObj[i][j]) cout<<"*";
+            if(i>hand_col-10&&i<hand_col+10&&j>hand_row-10&&j<hand_row+10) cout<<"#";
+            else if(i>obj_col-10&&i<obj_col+10&&j>obj_row-10&&j<obj_row+10) cout<<"o";            
             else cout<<" ";
         }
         cout<<endl;
@@ -251,8 +305,9 @@ public:
         motorId_states[motor_state.id] = motor_state.position;
     }
     if(data == NULL || depth == NULL) return;
-    vector<float> obj_position_cmr = Detect(scale, intrin, 3);
-    obj_position_cmr.push_back(1);  //{x,y,z,1}
+    vector<float> obj_hand_position_cmr = Detect(scale, intrin, 3);
+    vector<float> hand_position_cmr = {obj_hand_position_cmr[0],obj_hand_position_cmr[1],obj_hand_position_cmr[2]};
+    vector<float> obj_position_cmr = {obj_hand_position_cmr[3],obj_hand_position_cmr[4],obj_hand_position_cmr[5]};
 
     // printf("position is %d\n",motorId_states[20]);
     // printf("zeroposition is %d\n",zero_position[20]);
@@ -267,37 +322,51 @@ public:
     
     float cur_head_pitch = (motorId_states[20] - zero_position[20]) * step_angle * D2R; //head pitch
 
-    M2[0][0] = cos(cur_head_pitch);
-    M2[0][2] = sin(cur_head_pitch);
-    M2[2][0] = -sin(cur_head_pitch);
-    M2[2][2] = cos(cur_head_pitch);
+    rotY_M[0][0] = cos(-cur_head_pitch);
+    rotY_M[0][2] = sin(-cur_head_pitch);
+    rotY_M[2][0] = -sin(-cur_head_pitch);
+    rotY_M[2][2] = cos(-cur_head_pitch);
     vector<float> obj_position_base;
-    for(int i=0;i<4;i++){
-        float tmp = 0.0;
-        for(int j=0;j<4;j++){
-            tmp+=M2[i][j]*obj_position_cmr[j];
+    vector<float> hand_position_base;
+    for(int i=0;i<3;i++){
+        float tmp_0 = 0.0;
+        float tmp_1 = 0.0;
+        for(int j=0;j<3;j++){
+            tmp_0+=rotY_M[i][j]*obj_position_cmr[j];
+            tmp_1+=rotY_M[i][j]*hand_position_cmr[j];
         }
-        obj_position_base.push_back(tmp);
+        obj_position_base.push_back(tmp_0);
+        hand_position_base.push_back(tmp_1);
     }
     obj_position_base[0] += 4.4/100;
-    // obj_position_base[1] -= 3/100;
     obj_position_base[1] += 1.8/100;
     obj_position_base[2] += 5.3/100;
-    if(!(obj_position_base[0]>0.40||obj_position_base[0]<0.03)&&!IsEquals(obj_position_cmr[0],0.0)){
+    hand_position_base[0] += 4.4/100;
+    hand_position_base[1] += 1.8/100;
+    hand_position_base[2] += 5.3/100;
+    if(!(hand_position_base[0]>0.5||hand_position_base[0]<0.03)&&!IsEquals(hand_position_base[0],0.0)){
         printf("head pitch theta is : %.2f\n", cur_head_pitch);
         printf("position_cmr(cm):  (x,y,z)| (%.4f , %.4f, %.4f)\n",
-                obj_position_cmr[0]*100, obj_position_cmr[1]*100, obj_position_cmr[2]*100);
+                hand_position_cmr[0]*100, hand_position_cmr[1]*100, hand_position_cmr[2]*100);
         printf("position_base(cm): (x,y,z)| (%.4f , %.4f, %.4f)\n",
+                hand_position_base[0]*100, hand_position_base[1]*100, hand_position_base[2]*100);
+        printf("obj_position_cmr(cm):  (x,y,z)| (%.4f , %.4f, %.4f)\n",
+                obj_position_cmr[0]*100, obj_position_cmr[1]*100, obj_position_cmr[2]*100);
+        printf("obj_position_base(cm): (x,y,z)| (%.4f , %.4f, %.4f)\n",
                 obj_position_base[0]*100, obj_position_base[1]*100, obj_position_base[2]*100);
-        realsense_camera::position output;        
-        output.A=obj_position_base[0]*100;
-        output.B=obj_position_base[1]*100;
-        output.C=obj_position_base[2]*100;
+        realsense_camera::position output;
+        output.hx=hand_position_base[0]*100;
+        output.hy=hand_position_base[1]*100;
+        output.hz=hand_position_base[2]*100;
+        output.ox=obj_position_base[0]*100;
+        output.oy=obj_position_base[1]*100;
+        output.oz=obj_position_base[2]*100;
         pub_.publish(output);
     }else{
+        cout<<hand_position_base[0]<<" "<<hand_position_base[1]<<" "<<hand_position_base[2]<<endl;
         cout<<"Object not found!\n";
     }
-    ros::Duration(0.3).sleep();
+    // ros::Duration(0.3).sleep();
   }
 
 private:
@@ -312,7 +381,7 @@ int main(int argc, char * argv[]) try
     //cin >> kind;
     ros::init(argc, argv, "get_hand_position");
 
-    //rs::log_to_file(rs::log_severity::debug, "librealsense.log");
+    rs::log_to_file(rs::log_severity::debug, "librealsense.log");
     srand((unsigned int)(time(NULL))); /// use for object detection
 
     rs::context ctx;
@@ -342,10 +411,10 @@ int main(int argc, char * argv[]) try
     dev.start();
 
     // Open a GLFW window
-    // glfwInit();
+    glfwInit();
     std::ostringstream ss; ss << "CPP Capture Example (" << dev.get_name() << ")";
-    GLFWwindow * win = glfwCreateWindow(1280, 480, ss.str().c_str(), 0, 0);
-    // glfwSetWindowUserPointer(win, &dev);
+    GLFWwindow * win = glfwCreateWindow(1280, 960, ss.str().c_str(), 0, 0);
+    glfwSetWindowUserPointer(win, &dev);
     glfwSetKeyCallback(win, [](GLFWwindow * win, int key, int scancode, int action, int mods)
     {
         auto dev = reinterpret_cast<rs::device *>(glfwGetWindowUserPointer(win));
@@ -392,7 +461,7 @@ int main(int argc, char * argv[]) try
 
     // ros::Subscriber sub_head_pitch = nh.subscribe("/HeadPitch_controller/state", 1000, poseMessageReceived);
     SubscribeAndPublish SAPObject;
-    ros::Rate r(10); // 10 hz 
+    ros::Rate r(60); // 60 hz 
     rs::log_to_console(rs::log_severity::warn);
     while (!glfwWindowShouldClose(win) && ros::ok())
     {
@@ -403,13 +472,13 @@ int main(int argc, char * argv[]) try
         // Clear the framebuffer
         int w,h;
         glfwGetFramebufferSize(win, &w, &h);
-        // glViewport(0, 0, w, h);
-        // glClear(GL_COLOR_BUFFER_BIT);
+        glViewport(0, 0, w, h);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw the images
-        // glPushMatrix();
-        // glfwGetWindowSize(win, &w, &h);
-        // glOrtho(0, w, h, 0, -1, +1);
+        glPushMatrix();
+        glfwGetWindowSize(win, &w, &h);
+        glOrtho(0, w, h, 0, -1, +1);
         data = (const uint8_t*)buffers[0].show(\
             dev, align_color_to_depth ? rs::stream::color_aligned_to_depth : \
             (color_rectification_enabled ? rs::stream::rectified_color : \
@@ -421,7 +490,7 @@ int main(int argc, char * argv[]) try
         ++cnt;
         r.sleep();
         ros::spinOnce();
-        // glPopMatrix();
+        glPopMatrix();
         glfwSwapBuffers(win);
     }
 
